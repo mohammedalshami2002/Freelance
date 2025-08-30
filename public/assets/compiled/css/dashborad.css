@@ -1,0 +1,83 @@
+body {
+    background-color: #f0f2f5;
+    padding: 20px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* شريط التنقل */
+.breadcrumb-header {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* البطاقات */
+.stats-card {
+    text-align: center;
+    padding: 40px 20px;
+    border-radius: 16px;
+    color: #333;
+    background: linear-gradient(145deg, #ffffff, #f8f9fb);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* التأثير عند التمرير */
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* العنوان داخل البطاقة */
+.stats-card h3 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0;
+    color: #2c3e50;
+}
+
+/* الوصف داخل البطاقة */
+.stats-card p {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+}
+
+/* ألوان خلفيات هادئة ومتوحدة */
+.bg-progress {
+    background: linear-gradient(135deg, #dfe9f3, #ffffff);
+}
+
+.bg-excluded {
+    background: linear-gradient(135deg, #fdecea, #ffffff);
+}
+
+.bg-completed {
+    background: linear-gradient(135deg, #e9fbe5, #ffffff);
+}
+
+.bg-pending {
+    background: linear-gradient(135deg, #fff9e5, #ffffff);
+}
+
+.bg-service {
+    background: linear-gradient(135deg, #e6f7fb, #ffffff);
+}
+
+.bg-users {
+    background: linear-gradient(135deg, #ede7f6, #ffffff);
+}
+
+.bg-clients {
+    background: linear-gradient(135deg, #ffece1, #ffffff);
+}
+
+.bg-services-count {
+    background: linear-gradient(135deg, #e3f2fd, #ffffff);
+}
