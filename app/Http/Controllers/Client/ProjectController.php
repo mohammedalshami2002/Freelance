@@ -9,7 +9,10 @@ use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Categorie;
 use App\Models\Duration;
 use App\Models\Experience;
+use App\Models\Rating;
+use Illuminate\Http\Request;
 use App\Models\Skill;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
@@ -27,6 +30,45 @@ class ProjectController extends Controller
         }
     }
 
+    public function rating(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'project_id' => 'required|exists:projects,id',
+                'rating' => 'required|integer|min:1|max:5',
+            ]);
+
+            $user = Auth::user();
+
+            $project = Project::where('id', $request->project_id)
+                ->where('user_id', $user->id)
+                ->first();
+            if ($project == null) {
+                return redirect()->back()->withErrors(['error' => trans('dashboard.I_have_rated_this_project_before')]);
+            }
+            $ratingValue = $validatedData['rating'];
+
+            if (Rating::where('project_id', $project->id)->where('user_id', $user->receiver_user_id)->exists()) {
+                return redirect()->back()->withErrors(['error' => trans('dashboard.I_have_rated_this_project_before')]);
+            }
+
+            if($project->status = 'قيد التنفيذ' || $project->status == 'مكتمل' ){
+                Rating::create([
+                    'user_id' => $project->receiver_user_id,
+                    'project_id' => $project->id,
+                    'rating' => $ratingValue,
+                ]);
+    
+                session()->flash('add');
+                return redirect()->back();
+            }
+            return redirect()->back()->withErrors(['error' => trans('dashboard.You_cannot_add_a_rating')]);
+        } catch (\Exception $e) {
+
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
 
     public function create()
     {
@@ -41,10 +83,9 @@ class ProjectController extends Controller
     }
     public function skill($id)
     {
-        // استرداد المهارات المرتبطة بالقسم من قاعدة البيانات
+
         $skills = Skill::where('categorie_id', '=', $id)->get();
 
-        // إعادة الاستجابة بصيغة JSON
         return response()->json($skills);
     }
 
@@ -79,7 +120,7 @@ class ProjectController extends Controller
     public function show($id)
     {
         try {
-            $project = Project::where('id', $id) ->where('user_id', auth()->user()->id)->firstOrFail();
+            $project = Project::where('id', $id)->where('user_id', auth()->user()->id)->firstOrFail();
             return view("Dashboard.Client.project.show", compact(['project']));
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
@@ -105,26 +146,22 @@ class ProjectController extends Controller
         try {
             DB::beginTransaction();
 
-            // البحث عن المشروع بناءً على الـ id
             $project = Project::findOrFail($id);
 
-            // تحديث بيانات المشروع
             $project->update([
                 'name' => $request->name,
                 'prise' => $request->prise,
                 'description' => $request->description,
-                'status' => $project->status, // لا تغيير في الحالة
+                'status' => $project->status, 
                 'user_id' => auth()->user()->id,
                 'categorie_id' => $request->categorie_id,
                 'duration_id' => $request->duration_id,
                 'experience_id' => $request->experience_id,
             ]);
 
-            // التحقق من وجود مهارات جديدة في الطلب
             if ($request->has('skills')) {
-                // حذف المهارات القديمة
+                
                 $project->skills()->detach();
-                // إرفاق المهارات الجديدة
                 $project->skills()->attach($request->skills);
             }
 

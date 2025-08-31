@@ -98,19 +98,32 @@
 
     @php
 
-        // Count offers based on status for the current authenticated user
         $offersPending = auth()->user()->offer()->where('status', 0)->count();
         $offersUnaccepted = auth()->user()->offer()->where('status', 1)->count();
         $offersAccepted = auth()->user()->offer()->where('status', 2)->count();
     @endphp
 
     <div class="row">
-        <!-- Offers Section -->
         <div class="col-12 mb-4">
+            <div class="alert alert-primary text-white">
+                {{ trans('dashboard.commission__message', ['commission' => $commission_percentage]) }}
+            </div>
             <h4 class="text-secondary mb-3"><i class="fas fa-hand-holding-usd me-2"></i> {{ trans('dashboard.Prosodic') }}
             </h4>
             <div class="row">
-                <!-- Pending Offers -->
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="dashboard-card text-center">
+                        <div class="icon-container bg-blue-light mx-auto">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h4 class="card-value text-dark mb-0">
+                            ${{ number_format($currentBalance, 2) }}
+                        </h4>
+                        <p class="card-text">{{ trans('dashboard.current_balance') }}</p>
+                    </div>
+                </div>
+
+
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
                     <div class="dashboard-card text-center">
                         <div class="icon-container bg-orange-light mx-auto">
@@ -121,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- Unaccepted Proposals -->
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
                     <div class="dashboard-card text-center">
                         <div class="icon-container bg-red-light mx-auto">
@@ -132,7 +144,6 @@
                     </div>
                 </div>
 
-                <!-- Accepted Proposals -->
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
                     <div class="dashboard-card text-center">
                         <div class="icon-container bg-green-light mx-auto">
@@ -143,43 +154,7 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="alert alert-primary text-white">
-        {{ trans('dashboard.commission__message', ['commission' => $commission_percentage]) }}
-    </div>
-
-
-    <!-- Projects Section -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <h4 class="text-secondary mb-3">
-                {{ trans('dashboard.Latest_Projects') }}
-            </h4>
-
-            @forelse($projects as $project)
-                <div class="card mb-3 shadow-sm">
-                    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-start">
-                        <div>
-                            <h5 class="card-title mb-1">{{ $project->name }}</h5>
-                            <p class="card-text text-muted mb-2">
-                                {{ Str::limit($project->description, 100) }}
-                            </p>
-                            <span class="badge bg-primary">
-                                {{ number_format($project->prise, 2) }} $
-                            </span>
-                            <span class="badge">
-                                <a href="{{ route('projects.show', $project->id) }}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <p class="text-muted">{{ trans('dashboard.No_Projects_Found') }}</p>
-            @endforelse
         </div>
     </div>
 

@@ -36,11 +36,11 @@ class TransactionController extends Controller
     public function indexForClient()
     {
         try {
-            $transactions = Transactions::with(['user', 'project'])->where('user_id', auth()->user()->id)
+            $transactions = Transactions::where('type','!=','commission')->with(['user', 'project'])->where('user_id', auth()->user()->id)
                                        ->latest()
                                        ->paginate(10);
 
-            return view('Dashboard.service_provider.transactions',(['transactions']));
+            return view('Dashboard.service_provider.transactions',compact(['transactions']));
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
         }
@@ -54,7 +54,7 @@ class TransactionController extends Controller
     public function indexForServiceProvider()
     {
         try {
-            $transactions = Transactions::where('user_id', auth()->user()->id)
+            $transactions = Transactions::where('type','!=','commission')->where('user_id', auth()->user()->id)
                                        ->latest()
                                        ->paginate(10);
 

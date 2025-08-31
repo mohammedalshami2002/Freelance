@@ -192,14 +192,7 @@ Route::group(
                     Route::post('/destroy/{id}', 'destroy')->name('MyWork.destroy');
                 });
 
-                Route::group([
-                    'controller' => ServiceProviderController::class,
-                    'prefix' => '/withdraw'
-                ], function () {
-                    Route::get('/', 'withdraw')->name('service_provider.withdraw');
-                    Route::post('/request', 'requestWithdrawal')->name('service_provider.withdraw.request');
-                });
-
+                
                 // Route::resource('/service', ServiceController::class);
                 Route::get('/transactions', [TransactionController::class, 'indexForServiceProvider'])->name('service_provider.transactions');
                 Route::group([
@@ -213,6 +206,13 @@ Route::group(
                 });
             }
         );
+        Route::group([
+            'controller' => ServiceProviderController::class,
+            'prefix' => '/withdraw'
+        ], function () {
+            Route::get('/', 'withdraw')->name('service_provider.withdraw');
+            Route::post('/request', 'requestWithdrawal')->name('service_provider.withdraw.request');
+        });
 
         // client
         Route::group(
@@ -224,9 +224,11 @@ Route::group(
             function () {
                 Route::get('/dashboard', 'index')->name('Client.dashboard');
                 Route::resource('/Prosodic', ProjectController::class);
+                Route::post('/rating', [ProjectController::class,'rating'])->name('Client.rating');
                 Route::post('/Prosodic/offer/enable/{id}', [OfferController::class, 'enable'])->name('offer.enable');
                 Route::get('/Profile/Service_provider/{id}', [ProfileController::class, 'show'])->name('Profile.show');
                 Route::post('/categories/skills/{id}', [ProjectController::class, 'skill']);
+                Route::get('/transactions', [TransactionController::class, 'indexForClient'])->name('client.transactions');
             }
         );
 
@@ -250,12 +252,12 @@ Route::group(
             'middleware' => ['auth'],
         ], function () {
             Route::get('/index', 'index')->name('user.disputes.index');
+            Route::get('/add', 'add')->name('user.disputes.add');
             Route::get('/{dispute}', 'show')->name('user.disputes.show');
             Route::post('/store', 'store')->name('user.disputes.store');
             Route::post('/{dispute}/messages', 'addMessage')->name('user.disputes.addMessage');
         });
 
 
-        Route::get('/client/transactions', [TransactionController::class, 'indexForClient']);
     }
 );

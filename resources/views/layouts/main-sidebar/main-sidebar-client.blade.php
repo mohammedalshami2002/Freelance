@@ -76,6 +76,23 @@
                         <i class="fa-solid fa-scale-balanced"></i> <span>{{ trans('dashboard.disputes') }}</span>
                     </a>
                 </li>
+                <li class="sidebar-item {{ Route::is('client.transactions') ? 'active' : '' }}">
+                    <a href="{{ route('client.transactions') }}" class="sidebar-link">
+                        <i class="fa-solid fa-money-bill-transfer"></i> <span>{{ trans('dashboard.transactions') }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ Route::is('service_provider.withdraw') ? 'active' : '' }}">
+                    <a href="{{ route('service_provider.withdraw') }}" class="sidebar-link">
+                        <i class="fa-solid fa-money-bill-wave"></i> <span>{{ trans('dashboard.withdraw_funds') }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ Route::is('user.disputes.add') ? 'active' : '' }}">
+                    <a href="{{ route('user.disputes.add') }}" class="sidebar-link">
+                        <i class="fa-solid fa-handshake-slash"></i>  <span>{{ trans('dashboard.Add_a_dispute') }}</span>
+                    </a>
+                </li>
 
                 <li class="sidebar-item {{ Route::is('Prosodic.create') ? 'active' : '' }}">
                     <a href="{{ route('Prosodic.create') }}" class="sidebar-link">

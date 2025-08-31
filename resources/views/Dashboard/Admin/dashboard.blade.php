@@ -154,6 +154,17 @@
             </div>
         </div>
     </div>
+
+    <!-- بطاقة  إجمالي ربح الموقع-->
+    <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
+        <div class="card shadow stats-card">
+            <div class="card-body">
+                <h3 class="stats-value text-dark">{{ number_format($totalprofitsachieved, 2) }}</h3>
+                <p class="stats-label">{{ trans('dashboard.Total_profits') }}</p>
+            </div>
+        </div>
+    </div>
+
     <!-- بطاقة النزاعات المفتوحة -->
     <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
         <div class="card shadow stats-card">

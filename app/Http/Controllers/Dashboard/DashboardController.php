@@ -16,22 +16,23 @@ class DashboardController extends Controller
     public function index()
     {
         try {
-            // جلب جميع المشاريع والمستخدمين
+
             $projects = Project::all();
             $users = User::all();
 
             $requests = ModelsRequest::all();
 
-            // حساب عدد النزاعات المفتوحة
             $openDisputesCount = Dispute::where('status', 'open_for_reply')->count();
 
-            // حساب إجمالي المبالغ في المعاملات المكتملة
-            $totalCompletedTransactions = Transactions::where('status','=', 'completed')->sum('amount');
+            $totalCompletedTransactions = Transactions::where('status','=', 'completed')->where('type','deposit')->sum('amount');
+
+            $totalprofitsachieved = Transactions::where('type','commission')->where('status','=', 'completed')->sum('amount');
             
             return view('Dashboard.Admin.dashboard', compact([
                 'projects',
                 'users',
                 'openDisputesCount',
+                'totalprofitsachieved',
                 'totalCompletedTransactions',
                 'requests'
             ]));

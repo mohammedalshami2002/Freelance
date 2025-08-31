@@ -76,7 +76,9 @@
             <nav aria-label="breadcrumb" class="breadcrumb-header">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item">
-                        <a href="{{ route('dashboard') }}">{{ trans('dashboard.dashboard') }}</a>
+                        <a href="{{ auth()->user()->type_user == 'client' ? route('Client.dashboard') : route('service_provider.dashboard') }}">
+                            {{ trans('dashboard.dashboard') }}
+                        </a>
                     </li>
                     <li class="breadcrumb-item active" aria-current="page">{{ trans('dashboard.disputes') }}</li>
                 </ol>
@@ -102,7 +104,7 @@
                                                 </h6>
                                                 @php
                                                     $badgeClass = match ($dispute->status) {
-                                                        'open' => 'custom-badge badge-open',
+                                                        'open_for_reply' => 'custom-badge badge-open',
                                                         'resolved' => 'custom-badge badge-resolved',
                                                         default => 'custom-badge badge-default',
                                                     };

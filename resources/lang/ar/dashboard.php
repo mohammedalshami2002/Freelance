@@ -216,5 +216,16 @@ return [
     'The_platform' => 'المنصة',
     'commission__message' => 'نسبة العمولة في منصتنا هي :commission% فقط، مقابل توفير بيئة عمل آمنة وضمان حقوق الطرفين.',
     'The_amount_you_wish_to_withdraw_exceeds_your_current_balance' => 'المبلغ المطلوب سحبه يتجاوز رصيدك الحالي.',
+    'Total_profits' => 'إجمالي ربح الموقع',
+    'Add_a_dispute' => 'اضافة نزاع',
+    'select_project_and_write_reason' => 'اختر المشروع واكتب سبب النزاع',
+    'select_project' => 'اختر المشروع',
+    'select_a_project' => 'يرجى اختيار مشروع',
+    'initial_dispute_reason' => 'السبب الأولي للنزاع',
+    'send_dispute' => 'إرسال النزاع',
+    'There_is_already_an_open_dispute_for_this_project' => 'يوجد نزاع مفتوح بالفعل لهذا المشروع.',
+    'I_have_rated_this_project_before' =>'لقد قمت بتقييم هذا المشروع من قبل.',
+    'You_cannot_add_a_rating' => 'لا يمكنك اضافة تقييم',
+    'add_rating' =>'إضافة تقييم',
     
 ];

@@ -349,8 +349,22 @@
                             <a href="{{ route('Profile.show', $offer->user->id) }}" class="btn btn-primary btn-sm">
                                 <i class="bi bi-person-lines-fill"></i> {{ trans('dashboard.Present_his_information') }}
                             </a>
+                            @if ($offer->status == 2)
+                                @php
+                                    $firstRating = $project->ratings->first();
+                                @endphp
+
+                                @if (is_null($firstRating) || $firstRating->project_id != $project->id)
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#ratingModal">
+                                        <i class="bi bi-star-fill me-2"></i>
+                                        <span>{{ trans('dashboard.add_rating') }}</span>
+                                    </button>
+                                @endif
+                            @endif
                         </div>
                     </div>
+                    @include('Dashboard.Client.project.rating')
                 @empty
                     <div class="alert alert-info text-center">{{ trans('dashboard.No_offers_found') }}</div>
                 @endforelse

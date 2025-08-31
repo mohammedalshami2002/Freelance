@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Dispute;
 use App\Models\DisputeMessage;
+use App\Models\Project;
 use App\Models\SiteSetting;
 use App\Models\Transactions;
 use App\Traits\UploadTrait;
@@ -17,12 +18,7 @@ class DisputeController extends Controller
 {
 
     use UploadTrait;
-    /**
-     * عرض جميع النزاعات (خاص بالمدير).
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function indexForAdmin()
     {
         try {
@@ -37,12 +33,7 @@ class DisputeController extends Controller
         }
     }
 
-    /**
-     * عرض تفاصيل نزاع معين (خاص بالمدير).
-     *
-     * @param  \App\Models\Dispute  $dispute
-     * @return \Illuminate\Http\Response
-     */
+    
     public function showForAdmin($id)
     {
         try {
@@ -55,13 +46,19 @@ class DisputeController extends Controller
             return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
         }
     }
-    /**
-     * Resolve a dispute and handle financial transactions.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Dispute  $dispute
-     * @return \Illuminate\Http\RedirectResponse
-     */
+
+    public function add()
+    {
+        try {
+            $projects = Project::whereIn('status',[ 'قيد التنفيذ' , 'مكتمل'])->where('user_id',auth()->user()->id)->get();
+            
+            return view('Dashboard.disputes.add', compact('projects'));
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => trans('message.An_error_occurred_please_try_again_later')]);
+        }
+    }
+    
+
     public function resolve(Request $request, Dispute $dispute)
     {
         DB::beginTransaction();
@@ -114,7 +111,7 @@ class DisputeController extends Controller
 
                     // سجل عمولة المنصة
                     Transactions::create([
-                        'user_id' => Auth::id(),
+                        'user_id' => $dispute->service_provider_id,
                         'project_id' => $project->id,
                         'amount' => $commissionAmount,
                         'type' => 'commission',
@@ -150,11 +147,7 @@ class DisputeController extends Controller
     }
 
 
-    /**
-     * Display a listing of the disputes for the authenticated user.
-     *
-     * @return \Illuminate\View\View
-     */
+    
     public function index()
     {
         // Get all disputes where the authenticated user is either the client or the service provider.
@@ -166,12 +159,7 @@ class DisputeController extends Controller
         return view('Dashboard.disputes.index', compact('disputes'));
     }
 
-    /**
-     * Display the specified dispute details.
-     *
-     * @param  \App\Models\Dispute  $dispute
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     */
+    
     public function show(Dispute $dispute)
     {
         // Ensure the authenticated user is a party to this dispute.
@@ -185,22 +173,18 @@ class DisputeController extends Controller
         return view('Dashboard.disputes.show', compact('dispute'));
     }
 
-    /**
-     * Store a newly created dispute in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function store(Request $request)
     {
+        DB::beginTransaction();
+
         try {
             $validatedData = $request->validate([
                 'project_id' => [
                     'required',
                     'exists:projects,id',
-                    // التحقق من أن المشروع يخص المستخدم الحالي (العميل)
                     Rule::exists('projects', 'id')->where(function ($query) {
-                        return $query->where('client_id', Auth::id());
+                        return $query->where('user_id', Auth::id());
                     }),
                 ],
                 'initial_reason' => 'required|string|max:1000',
@@ -209,27 +193,34 @@ class DisputeController extends Controller
 
             $user = Auth::user();
 
-            // جلب المشروع من خلال المستخدم الحالي للتأكد من الملكية
-            $project = $user->project()->findOrFail($validatedData['project_id']);
+            $project = Project::findOrFail($validatedData['project_id']);
+
+            
+            if (Dispute::where('project_id', $project->id)->where('status', 'open_for_reply')->exists()) {
+                DB::rollBack();
+                return redirect()->back()->withErrors(['error' => trans('dashboard.There_is_already_an_open_dispute_for_this_project')]);
+            }
 
             $dispute = Dispute::create([
                 'project_id' => $validatedData['project_id'],
                 'client_id' => $user->id,
-                'service_provider_id' => $project->service_provider_id,
+                'service_provider_id' => $project->receiver_user_id,
                 'initial_reason' => $validatedData['initial_reason'],
-                'status' => 'open',
+                'status' => 'open_for_reply',
             ]);
 
             $attachmentPath = null;
             if ($request->hasFile('attachment')) {
-                $attachmentPath = $this->uploadImage($request->hasFile('attachment'), '/assets/image/Dispute');
+
+                $attachmentPath = $this->uploadImage($request->file('attachment'), '/assets/image/Dispute');
 
                 if ($attachmentPath == false) {
-                    return redirect()->back()->withErrors(['error' => trans('meesage.Failed_to_upload_image')]);
+
+                    DB::rollBack();
+                    return redirect()->back()->withErrors(['error' => trans('message.Failed_to_upload_image')]);
                 }
             }
 
-            // إضافة رسالة أولية للنزاع
             DisputeMessage::create([
                 'dispute_id' => $dispute->id,
                 'user_id' => $user->id,
@@ -237,19 +228,19 @@ class DisputeController extends Controller
                 'attachment_path' => $attachmentPath,
             ]);
 
-            return response()->json(['message' => 'Dispute created successfully.', 'dispute' => $dispute]);
+            DB::commit();
+
+            session()->flash('add');
+            return redirect()->back();
+            
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
+
+            DB::rollBack();
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
-    /**
-     * Add a message to a dispute (for client or service provider).
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Dispute  $dispute
-     * @return \Illuminate\Http\JsonResponse
-     */
+   
     public function addMessage(Request $request, Dispute $dispute)
     {
         try {

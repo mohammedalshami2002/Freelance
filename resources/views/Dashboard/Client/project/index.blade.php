@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', trans('dashboard.Prosodic'))
+@section('title', trans('dashboard.projects'))
 
 @section('css')
     <style>
@@ -134,7 +134,7 @@
                             {{ trans('dashboard.dashboard') }}
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ trans('dashboard.Prosodic') }}</li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ trans('dashboard.projects') }}</li>
                 </ol>
             </nav>
         </div>
