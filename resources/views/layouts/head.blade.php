@@ -7,7 +7,6 @@
     <link rel="shortcut icon" href="{{ URL::asset('assets/compiled/svg/logo.png')}}" type="image/x-icon">
     <link rel="stylesheet" href="{{ URL::asset('assets/compiled/css/app.rtl.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/compiled/css/iconly.rtl.css')}}">
-    <link rel="shortcut icon" href="{{URL::asset('assets/compiled/svg/logo.png')}}" type="image/x-icon">
     <link rel="stylesheet" href="{{URL::asset('assets/compiled/css/auth.rtl.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/extensions/choices.js/public/assets/styles/choices.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/extensions/fortawesome/fontawesome-free/css/all.min.css') }}">
@@ -15,7 +14,6 @@
     <link rel="shortcut icon" href="{{ URL::asset('assets/compiled/svg/logo.png') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ URL::asset('assets/compiled/css/app.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/compiled/css/iconly.css')}}">
-    <link rel="shortcut icon" href="{{URL::asset('assets/compiled/svg/logo.png')}}" type="image/x-icon">
     <link rel="stylesheet" href="{{URL::asset('assets/compiled/css/auth.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/extensions/choices.js/public/assets/styles/choices.css')}}">
     <link rel="stylesheet" href="{{ URL::asset('assets/extensions/fortawesome/fontawesome-free/css/all.min.css') }}">

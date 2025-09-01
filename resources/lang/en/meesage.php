@@ -13,4 +13,7 @@ return [
     "the_image_has_not_been_saved" => "The image has not been saved.",
     "No_file_uploaded" => "No file uploaded.",
     "A_request_has_been_approved" => "A request has been approved.",
+    "Failed_to_upload_image" => "Failed to upload image.",
+    'project_not_found' => 'Project not found',
+    'The_withdrawal_process_was_completed_successfully' => 'The withdrawal process was completed successfully',
 ];
