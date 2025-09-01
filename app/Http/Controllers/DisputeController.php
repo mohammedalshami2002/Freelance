@@ -92,31 +92,45 @@ class DisputeController extends Controller
                         'status' => 'completed',
                         'description' => 'dispute refund full',
                     ]);
+
+                    Transactions::where('project_id', $project->project_id)
+                                ->where('user_id', '=', $dispute->service_provider_id)
+                                ->where('type', '=', 'commission')
+                                ->update([
+                                            'status' => 'failed',
+                                            'description' => ' null',
+                    ]);
+
+                    Transactions::where('project_id', $project->project_id)
+                                ->where('user_id', '=', $dispute->service_provider_id)
+                                ->where('type', '=', 'deposit')
+                                ->update([
+                                            'status' => 'failed',
+                                            'description' => ' null',
+                    ]);
                     break;
                 case 'pay_service_provider':
-                    // دفع المبلغ كاملاً لمقدم الخدمة مع خصم العمولة
-                    $commissionRate = $sitesetting->commission_percentage;
-                    $commissionAmount = $projectAmount * ($commissionRate/100);
-                    $payoutAmount = $projectAmount - $commissionAmount;
 
+                    $transaction = Transactions::where('project_id', $project->project_id)
+                                ->where('user_id', '=', $dispute->service_provider_id)
+                                ->where('type', '=', 'commission')->first();
+
+                    $transaction->status = 'completed';
+                    $transaction->save();
+
+                    $transaction = Transactions::where('project_id', $project->project_id)
+                                ->where('user_id', '=', $dispute->service_provider_id)
+                                ->where('type', '=', 'deposit')
+                                ->first();
+                                
                     // سجل الدفع لمقدم الخدمة
                     Transactions::create([
                         'user_id' => $dispute->service_provider_id,
                         'project_id' => $project->id,
-                        'amount' => $payoutAmount,
+                        'amount' => $transaction->amount,
                         'type' => 'credit',
                         'status' => 'completed',
                         'description' => 'dispute_payment_full',
-                    ]);
-
-                    // سجل عمولة المنصة
-                    Transactions::create([
-                        'user_id' => $dispute->service_provider_id,
-                        'project_id' => $project->id,
-                        'amount' => $commissionAmount,
-                        'type' => 'commission',
-                        'status' => 'completed',
-                        'description' => 'project_commission_fee',
                     ]);
                     break;
             }
@@ -154,6 +168,7 @@ class DisputeController extends Controller
         $disputes = Dispute::where('client_id', Auth::id())
             ->orWhere('service_provider_id', Auth::id())
             ->with(['project', 'client', 'serviceProvider'])
+            ->latest()
             ->get();
 
         return view('Dashboard.disputes.index', compact('disputes'));

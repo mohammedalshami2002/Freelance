@@ -24,7 +24,7 @@ class ServiceProviderController extends Controller
                 ->sum('amount');
 
             $totalWithdrawals = Transactions::where('user_id', auth()->user()->id)
-                ->whereIn('type', ['withdrawal', 'commission'])
+                ->whereIn('type', ['withdrawal'])
                 ->where('status', 'completed')
                 ->sum('amount');
 
@@ -60,13 +60,13 @@ class ServiceProviderController extends Controller
                 'details' => 'nullable|string',
             ]);
 
-            $totalDeposits = Transactions::where('user_id', $user->id)
+            $totalDeposits = Transactions::where('user_id', auth()->user()->id)
                 ->whereIn('type', ['credit','refund'])
                 ->where('status', 'completed')
                 ->sum('amount');
 
             $totalWithdrawals = Transactions::where('user_id', auth()->user()->id)
-                ->whereIn('type', ['withdrawal', 'commission'])
+                ->whereIn('type', ['withdrawal'])
                 ->where('status', 'completed')
                 ->sum('amount');
 
@@ -78,7 +78,7 @@ class ServiceProviderController extends Controller
 
             Transactions::create([
                 'user_id' => auth()->id(),
-                'amount' => $request->amount,
+                'amount' => $request->amount - $transaction_fee,
                 'type' => 'withdrawal',
                 'status' => 'completed',
             ]);
