@@ -13,35 +13,56 @@ class ServiceProviderController extends Controller
 
     public function withdraw()
     {
-
         try {
-
             $user = auth()->user();
 
-            $totalDeposits = Transactions::where('user_id', $user->id)
-                ->whereIn('type', ['credit','refund'])
-                ->where('status', 'completed')
-                ->sum('amount');
-
-            $totalWithdrawals = Transactions::where('user_id', auth()->user()->id)
-                ->whereIn('type', ['withdrawal'])
-                ->where('status', 'completed')
-                ->sum('amount');
-
-            $currentBalance = $totalDeposits - $totalWithdrawals;
-            
             $settings = SiteSetting::first();
             $minimumWithdrawal = $settings->minimum_withdrawal_amount;
             $transactionFee = $settings->transaction_fee;
+
+            if ($user->type_user === 'service_provider') {
+
+                $totalDeposits = Transactions::where('user_id', $user->id)
+                    ->whereIn('type', ['credit', 'refund'])
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $totalWithdrawals = Transactions::where('user_id', $user->id)
+                    ->where('type', 'withdrawal')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $currentBalance = $totalDeposits - $totalWithdrawals;
+            } elseif ($user->type_user === 'client') {
+
+                $totalRefunds = Transactions::where('user_id', $user->id)
+                    ->where('type', 'refund')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $totalWithdrawals = Transactions::where('user_id', $user->id)
+                    ->where('type', 'withdrawal')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $currentBalance = $totalRefunds - $totalWithdrawals;
+            }
 
             $withdrawals = Transactions::where('user_id', $user->id)
                 ->latest()
                 ->get();
 
-            return view('Dashboard.service_provider.withdrawals', compact('user', 'withdrawals', 'transactionFee', 'currentBalance', 'minimumWithdrawal'));
+            return view('Dashboard.service_provider.withdrawals', compact(
+                'user',
+                'withdrawals',
+                'transactionFee',
+                'currentBalance',
+                'minimumWithdrawal'
+            ));
         } catch (\Exception $e) {
-
-            return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
+            return redirect()->back()->withErrors([
+                'error' => trans('meesage.An_error_occurred_please_try_again_later')
+            ]);
         }
     }
 
@@ -49,7 +70,7 @@ class ServiceProviderController extends Controller
     {
         try {
 
-            $user = User::where('type_user','admin')->first();
+            $user = auth()->user();
             $settings = SiteSetting::first();
             $minimumWithdrawal = $settings->minimum_withdrawal_amount;
             $transaction_fee = $settings->transaction_fee;
@@ -60,17 +81,33 @@ class ServiceProviderController extends Controller
                 'details' => 'nullable|string',
             ]);
 
-            $totalDeposits = Transactions::where('user_id', auth()->user()->id)
-                ->whereIn('type', ['credit','refund'])
-                ->where('status', 'completed')
-                ->sum('amount');
+            if ($user->type_user === 'service_provider') {
 
-            $totalWithdrawals = Transactions::where('user_id', auth()->user()->id)
-                ->whereIn('type', ['withdrawal'])
-                ->where('status', 'completed')
-                ->sum('amount');
+                $totalDeposits = Transactions::where('user_id', $user->id)
+                    ->whereIn('type', ['credit', 'refund'])
+                    ->where('status', 'completed')
+                    ->sum('amount');
 
-            $currentBalance = $totalDeposits - $totalWithdrawals;
+                $totalWithdrawals = Transactions::where('user_id', $user->id)
+                    ->where('type', 'withdrawal')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $currentBalance = $totalDeposits - $totalWithdrawals;
+            } elseif ($user->type_user === 'client') {
+
+                $totalRefunds = Transactions::where('user_id', $user->id)
+                    ->where('type', 'refund')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $totalWithdrawals = Transactions::where('user_id', $user->id)
+                    ->where('type', 'withdrawal')
+                    ->where('status', 'completed')
+                    ->sum('amount');
+
+                $currentBalance = $totalRefunds - $totalWithdrawals;
+            }
 
             if (($request->amount + $transaction_fee) > $currentBalance) {
                 return redirect()->back()->withErrors(['error' => trans('dashborad.The_amount_you_wish_to_withdraw_exceeds_your_current_balance')]);
