@@ -53,7 +53,7 @@
             margin: 0;
             padding: 0;
         }
-        
+
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
@@ -132,11 +132,13 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .chat-input .input-icons {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .chat-input .icon-btn {
@@ -151,6 +153,7 @@
             transition: 0.3s ease;
             background: var(--received-message-bg);
             color: #777;
+            flex-shrink: 0;
         }
 
         .chat-input .icon-btn:hover {
@@ -167,11 +170,12 @@
             border-radius: 50px;
             border: 1px solid #ccc;
             flex-grow: 1;
+            min-width: 0;
             padding-left: 15px;
             height: 45px;
             transition: border-color 0.2s;
         }
-        
+
         .chat-input .form-control:focus {
             border-color: var(--primary-color-dark);
             box-shadow: 0 0 0 0.2rem rgba(55, 161, 213, 0.25);
@@ -191,6 +195,7 @@
             cursor: pointer;
             transition: 0.3s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
         }
 
         .chat-input button.send-btn:hover {
@@ -198,7 +203,7 @@
             transform: scale(1.05);
         }
 
-        /* ✅ فاصل أنيق تحت الهيدر */
+        /* ✅ فاصل */
         .chat-divider {
             width: 100%;
             height: 2px;
@@ -228,6 +233,20 @@
                 max-width: 85%;
                 font-size: 0.9rem;
             }
+
+            .chat-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .chat-input .input-icons {
+                justify-content: center;
+            }
+
+            .chat-input form {
+                width: 100%;
+                margin-top: 10px;
+            }
         }
 
         /* ✅ Animation */
@@ -253,7 +272,8 @@
             <nav aria-label="breadcrumb" class="breadcrumb-header">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item">
-                        <a href="{{ $chat->user->type_user == 'service_provider' ? route('service_provider.dashboard') : route('Client.dashboard') }}">
+                        <a
+                            href="{{ $chat->user->type_user == 'service_provider' ? route('service_provider.dashboard') : route('Client.dashboard') }}">
                             {{ trans('dashboard.dashboard') }}
                         </a>
                     </li>
@@ -276,25 +296,30 @@
         <div class="chat-divider"></div>
 
         <div class="chat-messages">
-            @php $lastMessage = 0; @endphp
-            @foreach ($chat->messages as $message)
-                @php($lastMessage = $message->id)
-                <div class="chat-message {{ $message->is_my_message ? 'message-sent' : 'message-received' }}">
+            @foreach ($chat->messages as $item)
+                <div class="chat-message {{ $item->is_my_message ? 'message-sent' : 'message-received' }}">
                     <div class="message-bubble">
-                        @if ($message->type == 1)
-                            <p class="message-content">{{ $message->content }}</p>
-                        @elseif ($message->type == 2)
-                            <img src="{{ URL::asset('uploads/messages/' . $message->content) }}" class="img-fluid img-vid-show">
-                        @elseif ($message->type == 3)
+                        @if ($item->type == 1)
+                            <p class="message-content">{{ $item->content }}</p>
+                        @elseif ($item->type == 2)
+                            <img src="{{ asset('uploads/messages/' . $item->content) }}" class="img-fluid img-vid-show">
+                        @elseif ($item->type == 3)
                             <video controls class="video-fluid img-vid-show">
-                                <source src="{{ URL::asset('uploads/messages/' . $message->content) }}" type="video/mp4">
+                                <source src="{{ asset('uploads/messages/' . $item->content) }}" type="video/mp4">
                             </video>
-                        @elseif ($message->type == 4)
+                        @elseif ($item->type == 4)
                             <audio controls>
-                                <source src="{{ URL::asset('uploads/messages/' . $message->content) }}" type="audio/mpeg">
+                                <source src="{{ asset('uploads/messages/' . $item->content) }}" type="audio/mpeg">
                             </audio>
+                        @elseif ($item->type == 5)
+                            <div class="meeting-message">
+                                <a href="{{ $item->content }}" target="_blank" rel="noopener noreferrer">
+                                       {{ $item->content }}
+                                </a>
+                            </div>
                         @endif
-                        <span class="message-date">{{ $message->created_at->diffForHumans() }}</span>
+
+                        <span class="message-date">{{ $item->date_for_humans }}</span>
                     </div>
                 </div>
             @endforeach
@@ -304,14 +329,20 @@
             <div class="input-icons">
                 <button type="button" class="icon-btn active" data-type="1"><i class="fas fa-font"></i></button>
                 <button type="button" class="icon-btn" data-type="2"><i class="fas fa-image"></i></button>
-                <button type="button" class="icon-btn" data-type="3"><i class="fas fa-video"></i></button>
+                <button type="button" class="icon-btn" data-type="3"><i class="fa fa-play"></i></button>
                 <button type="button" class="icon-btn" data-type="4"><i class="fas fa-microphone"></i></button>
+                <a href="{{ route('meetings.create', $chat->id) }}" class="icon-btn" alt="انشاء رابط مكالمة فيديو">
+                    <i class="fas fa-video"></i>
+                </a>
             </div>
-            <form action="{{ route('chat.send', $chat->id) }}" method="POST" enctype="multipart/form-data" id="chatForm" class="d-flex flex-grow-1">
+
+            <form action="{{ route('chat.send', $chat->id) }}" method="POST" enctype="multipart/form-data" id="chatForm"
+                class="d-flex flex-grow-1">
                 @csrf
                 <input type="hidden" name="type" id="messageType" value="1">
                 <div class="flex-grow-1" id="inputContainer">
-                    <input type="text" name="content" placeholder="{{ trans('dashboard.type_your_message') }}" class="form-control" id="messageContent" required>
+                    <input type="text" name="content" placeholder="{{ trans('dashboard.type_your_message') }}"
+                        class="form-control" id="messageContent" required>
                 </div>
                 <button type="submit" class="send-btn"><i class="fas fa-paper-plane"></i></button>
             </form>
@@ -343,7 +374,6 @@
                 });
             });
 
-            // ✅ إرسال بالـ Enter
             document.getElementById("chatForm").addEventListener("keydown", function(e) {
                 if (e.key === "Enter" && typeInput.value == "1") {
                     e.preventDefault();

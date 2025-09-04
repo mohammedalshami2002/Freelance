@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Transactions;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class CheckProjects extends Command
 {
@@ -26,11 +27,9 @@ class CheckProjects extends Command
                 }
             ])->get();
 
-
         foreach ($projects as $project) {
 
             $acceptedOffer = $project->offers->first();
-
             $projectDuration = $project->duration;
 
             if (!$acceptedOffer || !$projectDuration) {
@@ -42,40 +41,46 @@ class CheckProjects extends Command
                 ->first();
 
             if ($durationTranslation) {
-
                 $endDate = match ($projectDuration->duration_name) {
                     'Days' => Carbon::parse($acceptedOffer->updated_at)->addDays($projectDuration->number),
                     'Week' => Carbon::parse($acceptedOffer->updated_at)->addWeeks($projectDuration->number),
                     'Month' => Carbon::parse($acceptedOffer->updated_at)->addMonths($projectDuration->number),
-                    default => null, 
+                    default => null,
                 };
-                
             }
 
+            $finalDate = $endDate?->addDays(10);
 
+            if ($finalDate && now()->greaterThan($finalDate) && $project->disputes()->count() == 0) {
 
-            $finalDate = $endDate->addDays(10);
+                DB::beginTransaction();
+                try {
+                    // تغيير حالة المشروع
+                    $project->update(['status' => 'مكتمل']);
 
-            if (now()->greaterThan($finalDate) && $project->disputes()->count() == 0) {
-                //  تغيير حالة المشروع
-                $project->update(['status' => 'مكتمل']);
+                    // تحديث العمولة
+                    Transactions::where('user_id', $project->receiver_user_id)
+                        ->where('project_id', $project->id)
+                        ->where('type', 'commission')
+                        ->update(['status' => 'completed']);
 
-                Transactions::where('user_id' , $project->receiver_user_id) 
-                ->where('project_id' , $project->id)
-                ->where('type','commission')
-                ->update(['status' => 'completed']);
+                    // إنشاء معاملة لمقدم الخدمة
+                    Transactions::create([
+                        'user_id'     => $project->receiver_user_id,
+                        'project_id'  => $project->id,
+                        'amount'      => $project->prise,
+                        'type'        => 'credit',
+                        'status'      => 'completed',
+                        'description' => 'Automatic release after project completion',
+                    ]);
 
-                //  إنشاء معاملة لمقدم الخدمة
-                Transactions::create([
-                    'user_id'    => $project->receiver_user_id,
-                    'project_id' => $project->id,
-                    'amount'     => $project->prise,
-                    'type'       => 'credit',
-                    'status'     => 'completed',
-                    'description' => 'Automatic release after project completion',
-                ]);
+                    DB::commit();
+                    $this->info("✅ Project {$project->id} marked as completed and payment released.");
 
-                $this->info("✅ Project {$project->id} marked as completed and payment released.");
+                } catch (\Throwable $e) {
+                    DB::rollBack();
+                    $this->error("❌ Failed to process project {$project->id}: " . $e->getMessage());
+                }
             }
         }
     }

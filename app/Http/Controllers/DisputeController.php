@@ -156,7 +156,7 @@ class DisputeController extends Controller
             return redirect()->back();
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => trans('meesage.An_error_occurred_please_try_again_later')]);
         }
     }
 

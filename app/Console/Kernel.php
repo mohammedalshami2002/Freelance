@@ -14,6 +14,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('projects:exclude-old')->daily();
         $schedule->command('projects:check-completion')->daily();
+
+         $schedule->command('backup:run')->dailyAt('02:00'); 
     }
 
     /**

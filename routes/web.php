@@ -9,6 +9,7 @@ use App\Http\Controllers\Client\{ClientDashboardController, OfferController, Pro
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\DisputeController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\ServiceProviderController;
 use App\Http\Controllers\TransactionController;
@@ -243,6 +244,8 @@ Route::group(
             Route::post('{chat}/send-message', 'sendMessage')->name('chat.send');
             Route::get('{chat}/{lastMessage}', 'getNewMessages');
         });
+
+        Route::get('/meetings/{id}', [MeetingController::class, 'createMeeting'])->name('meetings.create');
 
 
 
